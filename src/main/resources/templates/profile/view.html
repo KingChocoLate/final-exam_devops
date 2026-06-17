@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Profile Details</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+</head>
+<body>
+<div class="container mt-4" style="max-width:750px">
+    <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0" th:text="${profile.fullName}"></h4>
+            <span class="badge bg-light text-dark" th:text="${profile.type}"></span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <img th:if="${profile.hasPhoto()}"
+                         th:src="@{/profiles/photo/{id}(id=${profile.id})}"
+                         class="img-thumbnail mb-2"
+                         style="width:100px;height:130px;object-fit:cover"/>
+                    <p th:unless="${profile.hasPhoto()}" class="text-muted small">No Photo</p>
+                    <div>
+                        <img th:src="@{/profiles/qr/{id}(id=${profile.id})}"
+                             width="90" class="mb-1"/>
+                    </div>
+                    <div>
+                        <img th:src="@{/profiles/barcode/{id}(id=${profile.id})}"
+                             width="110"/>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <table class="table table-sm">
+                        <tr><th>Reg. Number</th><td th:text="${profile.registrationNumber}"></td></tr>
+                        <tr><th>UUID</th><td th:text="${profile.uuid}" style="font-size:11px"></td></tr>
+                        <tr><th>Department</th><td th:text="${profile.department}"></td></tr>
+                        <tr><th>Title</th><td th:text="${profile.title}"></td></tr>
+                        <tr><th>Email</th><td th:text="${profile.email}"></td></tr>
+                        <tr><th>Phone</th><td th:text="${profile.phone}"></td></tr>
+                        <tr><th>Blood Group</th><td th:text="${profile.bloodGroup}"></td></tr>
+                        <tr><th>Date of Birth</th><td th:text="${profile.dateOfBirth}"></td></tr>
+                        <tr><th>Issue Date</th><td th:text="${profile.issueDate}"></td></tr>
+                        <tr><th>Expiry Date</th><td th:text="${profile.expiryDate}"></td></tr>
+                        <tr><th>Template</th>
+                            <td th:text="${profile.template != null ? profile.template.name : '—'}"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer d-flex gap-2">
+            <a th:href="@{/idcard/preview/{id}(id=${profile.id})}" class="btn btn-warning">Preview ID Card</a>
+            <a th:href="@{/idcard/export/pdf/{id}(id=${profile.id})}" class="btn btn-success">Export PDF</a>
+            <a th:href="@{/profiles/{id}/edit(id=${profile.id})}" class="btn btn-secondary">Edit</a>
+            <a th:href="@{/profiles}" class="btn btn-outline-secondary">Back</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

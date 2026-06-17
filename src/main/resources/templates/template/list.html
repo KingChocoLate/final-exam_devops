@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Templates</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Templates</h2>
+        <div>
+            <a th:href="@{/profiles}" class="btn btn-secondary me-2">← Profiles</a>
+            <a th:href="@{/templates/new}" class="btn btn-primary">+ New Template</a>
+        </div>
+    </div>
+    <table class="table table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th>Code</th><th>Name</th><th>Organization</th>
+            <th>Layout</th><th>Primary Color</th><th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="t : ${templates}">
+            <td th:text="${t.code}"></td>
+            <td th:text="${t.name}"></td>
+            <td th:text="${t.organizationName}"></td>
+            <td th:text="${t.layout}"></td>
+            <td>
+                <span th:text="${t.primaryColor}"
+                      th:style="'background:' + t.primaryColor + ';color:white;padding:2px 8px;border-radius:4px'">
+                </span>
+            </td>
+            <td>
+                <a th:href="@{/templates/{id}/edit(id=${t.id})}" class="btn btn-sm btn-secondary">Edit</a>
+                <form th:action="@{/templates/{id}/delete(id=${t.id})}" method="post" style="display:inline">
+                    <button class="btn btn-sm btn-danger"
+                            onclick="return confirm('Delete?')">Delete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
