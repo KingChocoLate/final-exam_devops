@@ -1,0 +1,78 @@
+name: ID Card CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-deploy:
+    name: Build, Test, and Deploy
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Show last commit author email
+        run: |
+          echo "COMMIT_EMAIL=$(git log -1 --pretty=format:'%ae')" >> $GITHUB_ENV
+          echo "Last commit author email:"
+          git log -1 --pretty=format:'%ae'
+
+      - name: Build with Maven
+        run: |
+          mvn clean package -DskipTests | tee github-actions-build-output.txt
+
+      - name: Run tests with SQLite
+        run: |
+          mvn test -Dspring.profiles.active=test | tee github-actions-test-output.txt
+
+      - name: Run Ansible Playbook to deploy to web server
+        run: |
+          ansible-playbook -i ansible/inventory.ini ansible/q3-playbook.yml | tee github-actions-ansible-output.txt
+
+      - name: Upload build and deploy output files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-actions-output-files
+          path: |
+            github-actions-build-output.txt
+            github-actions-test-output.txt
+            github-actions-ansible-output.txt
+
+      - name: Send failure email notification
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: GitHub Actions Build Failed - ID Card Project
+          to: ${{ env.COMMIT_EMAIL }}
+          cc: srengty@gmail.com
+          from: ${{ secrets.SMTP_USERNAME }}
+          body: |
+            Hello,
+
+            The GitHub Actions workflow failed.
+
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Commit developer email: ${{ env.COMMIT_EMAIL }}
+            Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Please check the GitHub Actions log for details.
+
+            Regards,
+            GitHub Actions
