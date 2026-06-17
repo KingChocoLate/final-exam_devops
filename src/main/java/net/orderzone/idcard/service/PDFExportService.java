@@ -104,7 +104,7 @@ public class PDFExportService {
         qrCell.setBorder(Rectangle.NO_BORDER);
         qrCell.setPadding(5);
         qrCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        String verifyUrl = "http://localhost:8080/verify/" + profile.getUuid();
+        String verifyUrl = "http://localhost:8080/profiles/verify/" + profile.getUuid();
         byte[] qrBytes = qrCodeService.generateQRCode(verifyUrl, 150, 150);
         Image qrImg = Image.getInstance(qrBytes);
         qrImg.scaleToFit(70, 70);

@@ -1,73 +1,112 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Profiles</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+    <title>ID Card Generator</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>ID Card Management</h2>
-        <div>
-            <a th:href="@{/idcard/export/batch}" class="btn btn-success me-2">Batch Export PDF</a>
-            <a th:href="@{/templates}" class="btn btn-secondary me-2">Templates</a>
-            <a th:href="@{/profiles/new}" class="btn btn-primary">+ New Profile</a>
-        </div>
+
+<nav class="navbar">
+    <a th:href="@{/profiles}" class="navbar-brand">🪪 ID Card Generator</a>
+
+    <div class="navbar-menu">
+        <a th:href="@{/profiles}">Profiles</a>
+        <a th:href="@{/profiles/new}">New Profile</a>
+        <a th:href="@{/idcard/export/batch}">Batch Export</a>
+        <a th:href="@{/templates}">Templates</a>
     </div>
+</nav>
 
-    <form class="row g-2 mb-3" method="get">
-        <div class="col-md-5">
-            <input name="search" class="form-control" placeholder="Search by name..."
-                   th:value="${param.search}"/>
-        </div>
-        <div class="col-md-3">
-            <select name="type" class="form-select">
+<main class="container">
+
+    <section class="card page-header">
+        <h1>Profiles</h1>
+        <a th:href="@{/profiles/new}" class="btn btn-primary">+ New Profile</a>
+    </section>
+
+    <section class="card">
+        <form th:action="@{/profiles}" method="get" class="filter-bar">
+            <input type="text"
+                   name="search"
+                   placeholder="Search by name..."
+                   class="form-control">
+
+            <select name="type" class="form-control">
                 <option value="">All Types</option>
-                <option th:each="t : ${profileTypes}" th:value="${t}" th:text="${t}"></option>
+                <option th:each="type : ${profileTypes}"
+                        th:value="${type}"
+                        th:text="${type}">
+                </option>
             </select>
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-outline-secondary w-100">Filter</button>
-        </div>
-    </form>
 
-    <table class="table table-hover">
-        <thead class="table-dark">
-        <tr>
-            <th>Photo</th>
-            <th>Reg. Number</th>
-            <th>Full Name</th>
-            <th>Type</th>
-            <th>Department</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="p : ${profiles}">
-            <td>
-                <img th:if="${p.hasPhoto()}"
-                     th:src="@{/profiles/photo/{id}(id=${p.id})}"
-                     width="40" height="40"
-                     style="border-radius:50%;object-fit:cover"/>
-                <span th:unless="${p.hasPhoto()}">—</span>
-            </td>
-            <td th:text="${p.registrationNumber}"></td>
-            <td th:text="${p.fullName}"></td>
-            <td><span class="badge bg-info text-dark" th:text="${p.type}"></span></td>
-            <td th:text="${p.department}"></td>
-            <td>
-                <a th:href="@{/profiles/{id}(id=${p.id})}" class="btn btn-sm btn-info">View</a>
-                <a th:href="@{/idcard/preview/{id}(id=${p.id})}" class="btn btn-sm btn-warning">Preview</a>
-                <a th:href="@{/idcard/export/pdf/{id}(id=${p.id})}" class="btn btn-sm btn-success">PDF</a>
-                <a th:href="@{/profiles/{id}/edit(id=${p.id})}" class="btn btn-sm btn-secondary">Edit</a>
-                <form th:action="@{/profiles/{id}/delete(id=${p.id})}" method="post" style="display:inline">
-                    <button class="btn btn-sm btn-danger"
-                            onclick="return confirm('Delete this profile?')">Delete</button>
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Reg. No.</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Department</th>
+                <th>Template</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="profile : ${profiles}">
+                <td th:text="${profile.registrationNumber}">2026-ENG-001</td>
+
+                <td th:text="${profile.fullName}">Sophea Chan</td>
+
+                <td>
+                    <span class="badge"
+                          th:classappend="${profile.type.name() == 'STUDENT'} ? ' badge-student' :
+                                          (${profile.type.name() == 'EMPLOYEE'} ? ' badge-employee' : ' badge-user')"
+                          th:text="${profile.type}">
+                        STUDENT
+                    </span>
+                </td>
+
+                <td th:text="${profile.department}">Engineering</td>
+
+                <td th:text="${profile.template != null ? profile.template.name : 'No Template'}">
+                    Classic Blue
+                </td>
+
+                <td>
+                    <div class="actions">
+                        <a th:href="@{/idcard/preview/{id}(id=${profile.id})}"
+                           class="btn btn-outline">Card</a>
+
+                        <a th:href="@{/profiles/{id}/edit(id=${profile.id})}"
+                           class="btn btn-outline">Edit</a>
+
+                        <a th:href="@{/idcard/export/pdf/{id}(id=${profile.id})}"
+                           class="btn btn-small-primary">PDF</a>
+
+                        <form th:action="@{/profiles/{id}/delete(id=${profile.id})}"
+                              method="post"
+                              style="display:inline;">
+                            <button type="submit"
+                                    class="btn btn-danger"
+                                    onclick="return confirm('Delete this profile?')">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+
+            <tr th:if="${profiles.isEmpty()}">
+                <td colspan="6" class="empty-row">No profiles found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+</main>
+
 </body>
 </html>
