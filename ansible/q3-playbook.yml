@@ -1,0 +1,97 @@
+---
+- name: Question 3 - Update, build, test with SQLite, and backup MySQL
+  hosts: web
+  become: false
+
+  vars:
+    app_dir: /opt/app
+    db_name: "A-SOPHAT_ODOM-db"
+    db_user: root
+    db_password: "Hello@123"
+
+  tasks:
+    - name: Check current directory exists
+      command: pwd
+      args:
+        chdir: "{{ app_dir }}"
+      register: pwd_output
+
+    - name: Show app directory
+      debug:
+        var: pwd_output.stdout
+
+    - name: Remove local runtime config changes before git pull
+      command: git restore src/main/resources/application.properties
+      args:
+        chdir: "{{ app_dir }}"
+      ignore_errors: true
+
+    - name: Check git status before pull
+      command: git status --short
+      args:
+        chdir: "{{ app_dir }}"
+      register: git_status_before
+
+    - name: Show git status before pull
+      debug:
+        var: git_status_before.stdout_lines
+
+    - name: Pull latest code from GitHub
+      command: git pull origin main
+      args:
+        chdir: "{{ app_dir }}"
+      register: git_pull_output
+
+    - name: Show git pull output
+      debug:
+        var: git_pull_output.stdout_lines
+
+    - name: Build project using Maven
+      shell: mvn clean package -DskipTests | tee /tmp/q3-build-output.txt
+      args:
+        chdir: "{{ app_dir }}"
+      register: build_output
+
+    - name: Show Maven build result
+      debug:
+        var: build_output.stdout_lines
+
+    - name: Run tests using SQLite test database
+      shell: mvn test -Dspring.profiles.active=test | tee /tmp/q3-test-output.txt
+      args:
+        chdir: "{{ app_dir }}"
+      register: test_output
+
+    - name: Show test result
+      debug:
+        var: test_output.stdout_lines
+
+    - name: Backup MySQL database
+      shell: mysqldump -h 127.0.0.1 -u "{{ db_user }}" -p"{{ db_password }}" "{{ db_name }}" > /tmp/backup.sql
+      register: backup_output
+
+    - name: Check backup file
+      command: ls -lh /tmp/backup.sql
+      register: backup_check
+
+    - name: Show backup file info
+      debug:
+        var: backup_check.stdout
+
+    - name: Fetch backup.sql to local repo root
+      fetch:
+        src: /tmp/backup.sql
+        dest: ../backup.sql
+        flat: true
+
+    - name: Fetch test output to local repo root
+      fetch:
+        src: /tmp/q3-test-output.txt
+        dest: ../q3-test-output.txt
+        flat: true
+
+    - name: Fetch build output to local repo root
+      fetch:
+        src: /tmp/q3-build-output.txt
+        dest: ../q3-build-output.txt
+        flat: true
